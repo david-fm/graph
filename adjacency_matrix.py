@@ -26,13 +26,37 @@ class Edge:
 
 # Adjacency Matrix representation in Python
 class Graph(object):
-  '''A class to represent a directed graph.'''
+  '''
+  A class to represent a directed graph.
+  Attributes:
+      adjMatrix (list): A list of lists to represent an adjacency matrix.
+      size (int): The size of the matrix.''
+      nodeInfo (list): A list with information for the nodes in the graph, if any.
+  Each node is represented by a row and column in the matrix.
+  The row represents the edges leaving the node, and the column represents the edges entering the node.'''
   # Initialize the matrix
-  def __init__(self, size):
+  def __init__(self, size, nodeInfo=None):
+    '''
+    Initialize the graph.
+    Args:
+        size (int): The size of the matrix.
+        nodeInfo (list): A list of info for the nodes in the graph, if any.'''
     self.adjMatrix = []
     for i in range(size):
       self.adjMatrix.append([Edge() for i in range(size)])
     self.size = size
+    self.nodeInfo = nodeInfo
+
+  def __iter__(self):
+    self.counter = 0
+    return self
+  
+  def __next__(self):
+    if self.counter < self.size:
+      self.counter += 1
+      return (self.adjMatrix[self.counter - 1], self.nodeInfo[self.counter - 1])
+    else:
+        raise StopIteration
 
   # Add edges
   def add_edge(self, v1, v2, weight=1):
