@@ -13,25 +13,35 @@ class Edge:
     def __str__(self) -> str:
         return str(self.weights)
 
-    def add(self, weight, name=None):
-        '''Add a weight to the edge.'''
-        if name is None:
-            name = weight
-        self.weights[name] = weight
+    def __len__(self):
+        return len(self.weights)
     
-    def get(self, name=None):
-        '''Get a weight from the edge or the first one if name is None.'''
-        if name is None:
-            return self.weights[list(self.weights.keys())[0]]
-        return self.weights[name]
+    def __repr__(self) -> str:
+        return str(self.weights)
 
-    def remove(self, name):
+    def add(self, weight: int, info:object=None):
+        '''Add a weight to the edge.'''
+        if info is None:
+            info = weight
+        self.weights[info] = weight
+    
+    def get(self, info:object=None):
+        '''Get a weight from the edge or the first one if name is None.'''
+        if info is None:
+            return self.weights[list(self.weights.keys())[0]]
+        return self.weights[info]
+
+    def remove(self, info):
         '''Remove a weight from the edge.'''
-        self.weights.pop(name)
+        self.weights.pop(info)
 
     def clear(self):
         '''Remove all weights from the edge.'''
         self.weights = {}
+    
+    def get_infos(self):
+        '''Returns a list with the infos of the edge.'''
+        return list(self.weights.keys())
 
 # Adjacency Matrix representation in Python
 
@@ -40,7 +50,7 @@ class Graph(object):
     '''
     A class to represent a directed graph.
     Attributes:
-        adjMatrix (list): A list of lists to represent an adjacency matrix.
+        adjList (dic): A dic of lists to represent an adjacency list.
         size (int): The size of the matrix.''
         nodeInfo (list): A list with information for the nodes in the graph, if any.
     Each node is represented by a row and column in the matrix.
@@ -52,32 +62,40 @@ class Graph(object):
         Initialize the graph.
         Args:
             size (int): The size of the matrix.
-            nodeInfo (list): A dict of info for the nodes in the graph, if any, having as value the position in the array.'''
-        self.adjMatrix = []
+            nodeInfo (list): A list of info for the nodes in the graph, if any, having as value the position in the array.'''
+        self.adjList = {}
         for i in range(size):
-            self.adjMatrix.append([Edge() if i != j else Edge({0}) for j in range(size)  ])
+            self.adjList[nodeInfo[i]]={}
 
         self.size = size
-        self.nodeInfo = dict(zip(nodeInfo, [i for i in range(size)]))
 
     def __iter__(self):
-        self.counter = 0
+        self.__iter = iter(self.adjList)
         return self
 
     def __next__(self):
-        if self.counter < self.size:
-            self.counter += 1
-            if self.nodeInfo is None:
-                return (self.adjMatrix[self.counter - 1], None)
-            return self.adjMatrix[self.counter - 1]
-        else:
-            raise StopIteration
+        return next(self.__iter)
+    
+    def __getitem__(self, key):
+        return self.adjList[key]
 
-    def position(self, info_param: str):
-        '''Return the position of a node in the graph.'''
-        return self.nodeInfo[info_param]
+    def get_vertices(self):
+        '''
+        Get the vertices of the graph.
+        Returns:
+            list: Dict keys object with the vertices.'''
+        return self.adjList.keys()
+    
+    def get_neighbors(self, v):
+        '''
+        Get the neighbors of a vertex.
+        Args:
+            v (int): The vertex.
+        Returns:
+            list: A list with the neighbors.'''
+        return self.adjList[v]
+
     # Add edges
-
     def add_edge(self, v1, v2, weight=1, name=None):
         '''
         Add an edge to the graph.
@@ -86,19 +104,19 @@ class Graph(object):
             v2 (int): The second vertex.
             weight (int): The weight of the edge.'''
 
-        if v1 == v2:
-            if self.nodeInfo is None:
-                print("Same vertex %d and %d" % (v1, v2))
-            else:
-                print("Same vertex %s and %s" % (list(self.nodeInfo.keys())[v1], list(self.nodeInfo.keys())[v2]))
-        self.adjMatrix[v1][v2].add(weight, name)
+        #if v1 == v2:
+        #    print("Same vertex %s and %s" % (v1, v2))
+        if v2 not in self.adjList[v1]:
+            self.adjList[v1][v2] = Edge()
+        self.adjList[v1][v2].add(weight, name)
+    
 
     # Remove edges
     def remove_edge(self, v1, v2):
         '''
         Remove an edge from the graph.'''
 
-        self.adjMatrix[v1][v2].clear()
+        self.adjList[v1][v2].clear()
 
     # Get edge weight
     def get_edge_weight(self, v1, v2):
@@ -109,7 +127,7 @@ class Graph(object):
             v2 (int): The second vertex.
         Returns:
             int: The weight of the edge.'''
-        return self.adjMatrix[v1][v2].get()
+        return self.adjList[v1][v2].get()
 
 class MultiGraph(Graph):
     '''
@@ -127,12 +145,12 @@ class MultiGraph(Graph):
             v2 (int): The second vertex.
             weight (int): The weight of the edge.
             name (str): The name of the edge.'''
-        if v1 == v2:
-            print("Same vertex %d and %d" % (v1, v2))
-        elif name is None:
-            self.adjMatrix[v1][v2].remove(weight)
+        #if v1 == v2:
+        #    print("Same vertex %d and %d" % (v1, v2))
+        if name is None:
+            self.adjList[v1][v2].remove(weight)
         else:
-            self.adjMatrix[v1][v2].remove(name)
+            self.adjList[v1][v2].remove(name)
     
     def get_edge(self, v1, v2, name=None):
         '''
@@ -144,6 +162,6 @@ class MultiGraph(Graph):
         Returns:
             int: The weight of the edge.'''
         if name is None:
-            return self.adjMatrix[v1][v2].get()
+            return self.adjList[v1][v2].get()
         else:
-            return self.adjMatrix[v1][v2].get(name)
+            return self.adjList[v1][v2].get(name)
